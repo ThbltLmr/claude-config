@@ -1,0 +1,12 @@
+# Ignore everything by default
+*
+
+# Allow these specific files/directories
+!.gitignore
+!settings.json
+!commands/
+!commands/**
+!agents/
+!agents/**
+!skills/
+!skills/**
