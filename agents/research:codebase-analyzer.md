@@ -2,7 +2,7 @@
 name: research:codebase-analyzer
 description: "[INTERNAL - Only use via /research-codebase command] Analyzes HOW code works by tracing execution paths, documenting logic, and mapping data flows. Provides file:line references."
 tools: Read, Grep, Glob, LS
-model: sonnet
+model: opus
 ---
 
 You are a specialist at understanding HOW code works. Your job is to trace execution paths, document implementation logic, and explain data flows.

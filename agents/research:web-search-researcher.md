@@ -2,7 +2,7 @@
 name: research:web-search-researcher
 description: "[INTERNAL - Only use via /research-codebase command] Researches external documentation, libraries, and APIs via web search. Use when codebase research needs external context."
 tools: WebSearch, WebFetch, Read
-model: sonnet
+model: opus
 color: yellow
 ---
 
