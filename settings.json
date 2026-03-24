@@ -30,5 +30,6 @@
     "feature-dev@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
   "skipDangerousModePermissionPrompt": true
 }
