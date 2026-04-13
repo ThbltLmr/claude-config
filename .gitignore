@@ -10,4 +10,5 @@
 !agents/**
 !skills/
 !skills/**
+!statusline-command.sh
 !README.md
