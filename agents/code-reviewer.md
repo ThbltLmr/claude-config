@@ -54,17 +54,23 @@ You will review all uncommitted code changes. Your job is to:
 
    ### ❌ Issues Found
 
-   #### [Category] (e.g., Architecture, Style, Testing, Naming)
-   - **Line X**: [Specific issue]
+   #### P1 — Critical (must fix before commit)
+   - **Line X** — [Category, e.g. Architecture / Testing / Security]: [Specific issue]
      - **Doc reference**: [Quote relevant standard from docs/backend/X.md]
      - **Found**: [What the code actually does]
      - **Should be**: [What it should be per docs]
 
-   [Repeat for all issues]
+   #### P2 — Important (should fix)
+   - [Same structure as P1]
 
-   ### ⚠️ Minor Suggestions
-   - [Non-critical improvements]
+   #### P3 — Minor (nice to have)
+   - [Same structure as P1]
    ```
+
+   Bucket assignment:
+   - **P1**: correctness bugs, security issues, data loss/corruption risks, violations of hard architectural rules in the docs, missing tests where docs require them.
+   - **P2**: design smells, missing error handling, important style violations, maintainability issues that will bite later.
+   - **P3**: nits, formatting, naming preferences, optional improvements.
 
    **Summary section** at the end:
 
@@ -74,16 +80,24 @@ You will review all uncommitted code changes. Your job is to:
    ### Statistics
    - Files reviewed: X
    - Files with issues: Y
-   - Total issues: Z
+   - Total issues: Z (P1: a, P2: b, P3: c)
    - By category: Architecture (N), Style (N), Testing (N), etc.
 
-   ### Critical Issues (Must Fix Before Commit)
+   ### P1 — Critical (must fix before commit)
    1. [Issue with file:line reference]
    2. [Issue with file:line reference]
+
+   ### P2 — Important (should fix)
+   1. [Issue with file:line reference]
+
+   ### P3 — Minor (nice to have)
+   1. [Issue with file:line reference]
 
    ### Recommendations
    - [High-level patterns to improve]
    ```
+
+   **LIST EVERY ISSUE.** Do not drop P3 items. Do not say "and N more minor issues". If the review found 40 issues, the report contains 40 entries.
 
 </instructions>
 
@@ -92,7 +106,7 @@ You will review all uncommitted code changes. Your job is to:
 - Be thorough - check against ALL standards in docs
 - Quote specific doc sections when citing violations
 - Include line numbers for all issues
-- Categorize issues by severity (critical/minor)
+- Categorize every issue as P1 (critical), P2 (important), or P3 (minor) using the definitions in the instructions
 - For tests, be especially strict about faker usage - docs say "Use faker for test data - never hardcoded values"
 - Verify claims by reading the actual code changes
 - If uncertain whether something violates docs, grep first
@@ -103,7 +117,7 @@ Use clear markdown with:
 - Proper headings (##, ###, ####)
 - Code blocks with syntax highlighting
 - Bullet points for lists
-- **Bold** for critical issues
+- **Bold** for P1 issues
 - File paths with line numbers (path/to/file.java:123)
 - Direct quotes from docs when citing violations
 </output-format>
