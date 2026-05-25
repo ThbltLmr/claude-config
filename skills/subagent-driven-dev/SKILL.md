@@ -37,6 +37,19 @@ For each task, capture:
 
 If the plan is genuinely ambiguous about a decision the implementer will hit (e.g. "where do we store config — env var or config file?"), surface the question to the user **once, now**, before dispatching anything. Don't ship questions to the implementer that you should have answered.
 
+### Shared context bundle
+
+Every subagent starts with **zero** session context. Anything you learned by reading project docs, anything a context-priming or onboarding skill loaded into your context, anything the user pointed you at this session — none of it reaches the subagent unless you put it in the prompt.
+
+Before dispatching anything, assemble a single bundle of project-wide documentation that will travel with every implementer and code-quality reviewer this run. Include:
+
+- The repo's `CLAUDE.md` and any onboarding / priming docs that were loaded into your context.
+- Style guides, architecture docs, or convention notes the user pointed you to or that other skills surfaced.
+- Framework / library conventions the plan implicitly assumes (e.g. "we use Server Components, not Client Components, unless the file is marked").
+- Naming, layering, or testing conventions visible from a quick read of the codebase.
+
+This bundle is the `{PROJECT_CONVENTIONS}` placeholder in every template in §6. Treat it as **required input** — never leave it empty, never tell the subagent to "go read CLAUDE.md itself." If you genuinely have no project conventions to pass, write "None provided — apply general best practices for the language/framework in use."
+
 ## 3. Register the task list
 
 Call `TaskCreate` to register every task you carved, in order. This gives both you and the user a live progress view as the loop runs. Mark each task `in_progress` when its implementer is dispatched and `completed` only after both reviews pass.
@@ -135,7 +148,11 @@ You are implementing Task {N} of a multi-task plan: {TASK_NAME}
 
 ## Context
 
-{CONTEXT_BLOCK — architectural notes, conventions, what previous tasks built, constraints}
+{CONTEXT_BLOCK — architectural notes, what previous tasks built, task-specific constraints}
+
+## Project Conventions
+
+{PROJECT_CONVENTIONS — the shared bundle from §2: CLAUDE.md, style guides, architecture docs, framework conventions. Apply these to the code you write. If any conflict with the task description, flag the conflict in your report rather than guessing.}
 
 ## Working Directory
 
@@ -251,6 +268,7 @@ For code quality, use `subagent_type: code-reviewer` (the dedicated agent). Pass
 - **Description:** the task summary from the implementer's report.
 - **Requirements:** the task's full text and acceptance criteria.
 - **Commit range:** `BASE_SHA..HEAD_SHA` for this task's work only.
+- **Project conventions:** the `{PROJECT_CONVENTIONS}` bundle from §2. The reviewer must check the change against these conventions, not just generic style. State explicitly: "Apply the project conventions below as the standard for this review."
 
 Add this directive to the prompt:
 
@@ -263,7 +281,6 @@ In addition to standard code quality concerns, check:
 
 Return: Strengths, Issues (Critical / Important / Minor), Assessment.
 ```
-If you were provided with guidelines or documentation in your own context (e.g. through any sort of context priming or onboarding skill), pass it to the reviewer as well
 
 ## Red flags
 
