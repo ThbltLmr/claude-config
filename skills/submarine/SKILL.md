@@ -1,5 +1,5 @@
 ---
-name: subagent-driven-dev
+name: submarine
 description: Execute any markdown plan (plan-mode output, file path, or inline text) by breaking it into tasks and running each through a fresh implementer subagent followed by spec-compliance and code-quality reviewer subagents. Use when the user has a plan and wants it implemented end-to-end without manually dispatching agents.
 ---
 
