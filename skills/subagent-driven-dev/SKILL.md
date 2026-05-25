@@ -112,7 +112,7 @@ For every task in the current wave, build one `Agent` call with `subagent_type: 
 
 **Worktree isolation for multi-task waves.** When a wave has more than one task, set `isolation: "worktree"` on each `Agent` call. Each parallel implementer then operates in its own temporary git worktree on its own branch, so concurrent writes can't clobber each other — even if your dependency analysis missed a subtle file overlap. The tool returns the worktree path and branch name for any implementer that made changes.
 
-After the wave's spec + code-quality reviews all pass (4c–4e), merge each implementer's branch back into the working branch. Order doesn't matter within a wave if your file-overlap check was correct; if a merge conflicts, your dependency analysis was wrong and you need to redo the affected tasks sequentially.
+After the wave's spec + code-quality reviews all pass (4c–4e), rebase each implementer's branch onto the working branch and fast-forward — see 4f for the exact commands. We want a linear history with no merge commits.
 
 Single-task waves skip worktree isolation — the implementer can work directly on the current branch.
 
@@ -161,9 +161,17 @@ Update the task to `completed` via `TaskUpdate` as soon as both reviews pass for
 
 Once every task in the wave is `completed`:
 
-1. If you used worktrees, merge each implementer's branch back into the working branch. Conflicts here mean your dependency analysis missed a file overlap — redo the conflicting tasks sequentially before continuing.
-2. Verify the working branch's tests still pass after the merges.
-3. Move to the next wave.
+1. If you used worktrees, integrate each implementer's branch into the working branch **via rebase + fast-forward** — never `git merge` (no merge commits, history stays linear). For each worktree branch `<task-branch>`, from the working branch:
+   ```
+   git rebase <working-branch> <task-branch>   # replay task commits onto current working-branch HEAD
+   git checkout <working-branch>
+   git merge --ff-only <task-branch>           # advance the working branch
+   ```
+   Then move to the next worktree branch. Order doesn't matter end-state-wise if your file-overlap check was correct, but the resulting linear history reflects whichever order you pick — pick a stable one (e.g. task order in the plan).
+2. If a rebase conflicts, your dependency analysis missed a file overlap. Abort the rebase (`git rebase --abort`), redo the affected task sequentially against the new working-branch HEAD, and continue.
+3. Once all task branches are integrated, delete them and their worktrees (`git worktree remove …`, `git branch -d …`).
+4. Verify the working branch's tests still pass after integration.
+5. Move to the next wave.
 
 ## 5. After all tasks
 
