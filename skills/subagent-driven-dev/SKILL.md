@@ -50,13 +50,44 @@ Before dispatching anything, assemble a single bundle of project-wide documentat
 
 This bundle is the `{PROJECT_CONVENTIONS}` placeholder in every template in §6. Treat it as **required input** — never leave it empty, never tell the subagent to "go read CLAUDE.md itself." If you genuinely have no project conventions to pass, write "None provided — apply general best practices for the language/framework in use."
 
+### Dependency analysis & waves
+
+A fully sequential loop is safe but slow. Wherever the task list allows it, run implementers **in parallel** to compress wall-clock time. The cost of getting this wrong is real (clobbered files, contract mismatches), so be conservative.
+
+For every pair of tasks, ask:
+
+1. **File overlap.** Do they edit any of the same files? If yes → sequential.
+2. **Contract dependency.** Does Task B consume an interface, schema, type, route, or other artifact that Task A defines? If yes → A finishes (and its spec review passes) before B starts.
+3. **Implicit ordering.** Does the plan require one to come before the other (migration ordering, scaffolding, environment setup)? If yes → sequential.
+
+If none of the above apply, the tasks can run in parallel.
+
+Group tasks into **waves**:
+
+- **Wave 1:** all tasks with no unmet dependencies.
+- **Wave 2:** tasks whose dependencies are all satisfied by Wave 1.
+- … and so on.
+
+Tasks within the same wave run in parallel. Waves run strictly sequentially — Wave N+1 does not start until every task in Wave N is fully reviewed and merged.
+
+**Typical fullstack pattern:**
+- Wave 1 (1 task, sequential): define the API contract / shared types / DB schema. This is the artifact downstream tasks consume.
+- Wave 2 (parallel): backend handlers + frontend client + DB migration code, each consuming the Wave-1 contract as fixed input.
+- Wave 3 (parallel, optional): integration tests, docs, telemetry — anything that depends on Wave 2 being in place.
+
+If the plan resists wave decomposition (truly interleaved work, single-file feature, etc.), fall back to one task per wave — that's the original sequential flow, which is always correct. Don't force parallelism that creates conflict risk.
+
+Record the wave number on each task when you carve it.
+
 ## 3. Register the task list
 
-Call `TaskCreate` to register every task you carved, in order. This gives both you and the user a live progress view as the loop runs. Mark each task `in_progress` when its implementer is dispatched and `completed` only after both reviews pass.
+Call `TaskCreate` to register every task you carved, ordered by wave then by intra-wave position. Prefix titles with the wave number (e.g. `[W1] Define API contract`, `[W2] Implement backend handler`, `[W2] Implement frontend client`) so the user can see what runs in parallel. Mark each task `in_progress` when its implementer is dispatched and `completed` only after both reviews pass.
 
-## 4. Per-task execution loop
+## 4. Per-wave execution loop
 
-For each task in order, run this sub-process. **Do not pause for user check-ins between tasks.** Drive straight through unless an implementer reports `BLOCKED` or `NEEDS_CONTEXT` you cannot resolve, or a reviewer finds something that requires a human decision.
+For each wave in order, run this sub-process. Within a wave, dispatch all implementers in parallel; the wave is not done until **every** task in it has passed both reviews. **Do not pause for user check-ins between waves or tasks.** Drive straight through unless an implementer reports `BLOCKED` or `NEEDS_CONTEXT` you cannot resolve, or a reviewer finds something that requires a human decision.
+
+If a wave contains only one task, the loop degenerates to the original sequential flow.
 
 ### Model selection (applies to 4a, 4c, 4d)
 
@@ -73,13 +104,21 @@ Escalate to `opus` only when:
 
 If you find yourself reaching for Opus by default, stop — the cost is real and Sonnet handles most carved tasks fine.
 
-### 4a. Dispatch the implementer
+### 4a. Dispatch the wave's implementers
 
-Use the `Agent` tool with `subagent_type: general-purpose`, `model: "sonnet"` (see Model selection above), and the **Implementer template** from §6 below. Fill in the placeholders. The subagent must receive the full task text and context block — never tell it to "go read the plan."
+For every task in the current wave, build one `Agent` call with `subagent_type: general-purpose`, `model: "sonnet"` (see Model selection above), and the **Implementer template** from §6 below. Fill in the placeholders. Each subagent must receive its own full task text, context block, and project conventions — never tell it to "go read the plan."
 
-### 4b. Handle the implementer's status
+**Send all of the wave's `Agent` calls in a single message** so they execute concurrently. Single-task waves are just one call; multi-task waves are N calls in one assistant turn.
 
-Implementers report one of four statuses:
+**Worktree isolation for multi-task waves.** When a wave has more than one task, set `isolation: "worktree"` on each `Agent` call. Each parallel implementer then operates in its own temporary git worktree on its own branch, so concurrent writes can't clobber each other — even if your dependency analysis missed a subtle file overlap. The tool returns the worktree path and branch name for any implementer that made changes.
+
+After the wave's spec + code-quality reviews all pass (4c–4e), merge each implementer's branch back into the working branch. Order doesn't matter within a wave if your file-overlap check was correct; if a merge conflicts, your dependency analysis was wrong and you need to redo the affected tasks sequentially.
+
+Single-task waves skip worktree isolation — the implementer can work directly on the current branch.
+
+### 4b. Handle each implementer's status
+
+Handle every implementer in the wave independently. Implementers report one of four statuses:
 
 - **DONE** → proceed to 4c (spec review).
 - **DONE_WITH_CONCERNS** → read the concerns. If they're about correctness or scope, address them (re-dispatch with guidance) before review. If they're observations ("this file is getting long"), note them and proceed to review.
@@ -94,7 +133,9 @@ Implementers report one of four statuses:
 
 ### 4c. Spec-compliance review
 
-Dispatch a fresh subagent with `subagent_type: general-purpose`, `model: "haiku"`, and the **Spec Reviewer template** from §6. Its job is to read the actual code and verify it matches the task requirements — neither missing pieces nor extra ones. The implementer's self-report is **not** the source of truth.
+For each implementer that returned DONE (or DONE_WITH_CONCERNS), dispatch a fresh subagent with `subagent_type: general-purpose`, `model: "haiku"`, and the **Spec Reviewer template** from §6. Reviews are read-only, so **dispatch all of the wave's spec reviewers in a single message** to run them in parallel. Each reviewer reads only its own task's commit range / worktree branch.
+
+The reviewer's job is to read the actual code and verify it matches the task requirements — neither missing pieces nor extra ones. The implementer's self-report is **not** the source of truth.
 
 If the spec reviewer reports issues:
 - Re-dispatch the implementer with the reviewer's findings as input. Tell it to fix exactly those gaps.
@@ -103,7 +144,7 @@ If the spec reviewer reports issues:
 
 ### 4d. Code-quality review
 
-Once spec compliance is ✅, dispatch the **`code-reviewer`** subagent (`subagent_type: code-reviewer`, `model: "sonnet"`). Provide the task summary, the requirements, and the commit range covering this task's work (`BASE_SHA` = commit before the task started, `HEAD_SHA` = current HEAD). The reviewer returns Strengths / Issues (Critical / Important / Minor) / Assessment.
+Once a task's spec compliance is ✅, dispatch the **`code-reviewer`** subagent (`subagent_type: code-reviewer`, `model: "sonnet"`). For multi-task waves, dispatch all code-quality reviewers in a single message to run in parallel — each on its own commit range / worktree branch. Provide the task summary, the requirements, the project conventions bundle, and the commit range covering this task's work (`BASE_SHA` = commit before the task started, `HEAD_SHA` = the task's final commit on its branch). The reviewer returns Strengths / Issues (Critical / Important / Minor) / Assessment.
 
 If the code reviewer finds Critical or Important issues:
 - Re-dispatch the implementer to fix them.
@@ -114,7 +155,15 @@ Minor issues are judgment calls — fix them if cheap, otherwise note them on th
 
 ### 4e. Mark the task complete
 
-Update the task to `completed` via `TaskUpdate`. Move to the next task.
+Update the task to `completed` via `TaskUpdate` as soon as both reviews pass for it. Don't wait for the whole wave.
+
+### 4f. Close out the wave
+
+Once every task in the wave is `completed`:
+
+1. If you used worktrees, merge each implementer's branch back into the working branch. Conflicts here mean your dependency analysis missed a file overlap — redo the conflicting tasks sequentially before continuing.
+2. Verify the working branch's tests still pass after the merges.
+3. Move to the next wave.
 
 ## 5. After all tasks
 
@@ -284,7 +333,9 @@ Return: Strengths, Issues (Critical / Important / Minor), Assessment.
 
 ## Red flags
 
-- **Never** run multiple implementer subagents in parallel — they conflict on shared state.
+- **Never** run parallel implementers without `isolation: "worktree"` unless their file sets are strictly disjoint AND neither consumes the other's output.
+- **Never** start a wave before the previous wave's tasks are reviewed AND merged. Half-merged waves create the conflicts you parallelized to avoid.
+- **Never** run two implementers on the same task in parallel hoping one will "win" — pick one, review it, fix it.
 - **Never** skip the spec review or run code-quality review before spec compliance is ✅.
 - **Never** make a subagent read the plan file. Provide the full task text.
 - **Never** start implementation on `main` / `master` without explicit user consent. If the current branch is the default branch, stop and ask.
