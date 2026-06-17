@@ -99,4 +99,22 @@ Default-recommend option 2 when there are >3 actionable items, otherwise option 
 - Review-comment replies: `gh api -X POST repos/<owner>/<repo>/pulls/<N>/comments/<id>/replies -f body=...`
 - Issue-thread replies: `gh api -X POST repos/<owner>/<repo>/issues/<N>/comments -f body=...`
 
+## 7. Commit fixes and notify the reviewer
+
+After applying the `needs-fix` changes (and only those the user approved), offer to commit them and report back on each addressed thread.
+
+Use `AskUserQuestion` once:
+
+1. **Commit per-comment and post "done in <hash>"** — for each addressed comment, stage only that comment's fix, commit it with a message referencing the comment, then reply on the thread with `Done in <commit-hash>.`
+2. **One commit for all fixes, then post to each thread** — make a single commit covering all applied fixes, then post `Done in <commit-hash>.` to every addressed thread with that same hash.
+3. **Don't commit** — leave the changes in the working tree, post nothing.
+
+Default-recommend option 1 — per-comment commits give each reviewer a precise hash to verify.
+
+For each commit, capture the resulting SHA (`git rev-parse --short HEAD`) and post it back to the originating thread using the reply commands above:
+- Reply body: `Done in <commit-hash>.` (optionally one line on what changed).
+- Use the addressed comment's `id` (review comment) or the issue thread, matching how the comment was fetched.
+
+If the branch needs pushing for the reviewer to see the commit, ask before running `git push`. Confirm each commit message and each reply body before committing/posting — same consent rule as step 6.
+
 </instructions>
