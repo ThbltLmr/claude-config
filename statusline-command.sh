@@ -1,7 +1,65 @@
 #!/usr/bin/env bash
 # Claude Code status line — Starship Catppuccin Frappe style
+# Portable across macOS (BSD userland) and Linux (GNU coreutils).
 
 input=$(cat)
+
+# --- Portability helpers ---
+# GNU and BSD disagree on stat/date flags; detect once rather than per call.
+if date --version >/dev/null 2>&1; then date_gnu=1; else date_gnu=0; fi
+if stat --version >/dev/null 2>&1; then stat_gnu=1; else stat_gnu=0; fi
+
+file_mtime() {
+  if [ "$stat_gnu" = 1 ]; then
+    stat -c %Y "$1" 2>/dev/null
+  else
+    stat -f %m "$1" 2>/dev/null
+  fi
+}
+
+# ISO-8601 UTC timestamp -> epoch seconds
+iso_to_epoch() {
+  if [ "$date_gnu" = 1 ]; then
+    # GNU date parses the full string, fractional seconds and offset included
+    date -d "$1" +%s 2>/dev/null
+  else
+    # BSD date needs an exact format match, so strip fraction and offset
+    local clean
+    clean=$(echo "$1" | sed 's/\.[0-9]*//; s/[+-][0-9:]*$//; s/Z$//')
+    TZ=UTC date -jf "%Y-%m-%dT%H:%M:%S" "$clean" +%s 2>/dev/null
+  fi
+}
+
+# epoch seconds -> local HH:MM
+epoch_to_hm() {
+  if [ "$date_gnu" = 1 ]; then
+    date -d "@$1" +%H:%M 2>/dev/null
+  else
+    date -r "$1" +%H:%M 2>/dev/null
+  fi
+}
+
+# OAuth token, from whichever store this platform uses
+read_oauth_token() {
+  local creds token
+  # Linux: credentials file written by Claude Code
+  if [ -r "$HOME/.claude/.credentials.json" ]; then
+    token=$(jq -r '.claudeAiOauth.accessToken // empty' "$HOME/.claude/.credentials.json" 2>/dev/null)
+    [ -n "$token" ] && { printf '%s' "$token"; return; }
+  fi
+  # Linux: Secret Service keyring
+  if command -v secret-tool >/dev/null 2>&1; then
+    creds=$(secret-tool lookup service "Claude Code-credentials" 2>/dev/null)
+    token=$(echo "$creds" | jq -r '.claudeAiOauth.accessToken // empty' 2>/dev/null)
+    [ -n "$token" ] && { printf '%s' "$token"; return; }
+  fi
+  # macOS: Keychain
+  if command -v security >/dev/null 2>&1; then
+    creds=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null)
+    token=$(echo "$creds" | jq -r '.claudeAiOauth.accessToken // empty' 2>/dev/null)
+    [ -n "$token" ] && { printf '%s' "$token"; return; }
+  fi
+}
 
 # --- Data extraction ---
 cwd=$(echo "$input" | jq -r '.workspace.current_dir // .cwd // ""')
@@ -11,8 +69,13 @@ git_branch=""
 git_status_str=""
 
 # Shorten path: replace $HOME with ~, then truncate to last 3 segments
+# NB: don't use ${cwd/#$home/~} — bash tilde-expands the replacement back to $HOME.
 home="$HOME"
-short_path="${cwd/#$home/~}"
+short_path="$cwd"
+case "$cwd" in
+  "$home")   short_path="~" ;;
+  "$home"/*) short_path="~${cwd#"$home"}" ;;
+esac
 IFS='/' read -ra parts <<< "$short_path"
 count=${#parts[@]}
 if (( count > 3 )); then
@@ -54,23 +117,20 @@ CACHE_MAX_AGE=60
 
 cache_is_stale() {
   [ ! -f "$CACHE_FILE" ] || \
-  [ $(($(date +%s) - $(stat -f %m "$CACHE_FILE" 2>/dev/null || echo 0))) -gt $CACHE_MAX_AGE ]
+  [ $(($(date +%s) - $(file_mtime "$CACHE_FILE" || echo 0))) -gt $CACHE_MAX_AGE ]
 }
 
 if cache_is_stale; then
-  CREDS=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null)
-  if [ -n "$CREDS" ]; then
-    TOKEN=$(echo "$CREDS" | jq -r '.claudeAiOauth.accessToken // empty' 2>/dev/null)
-    if [ -n "$TOKEN" ]; then
-      RESP=$(curl -s --max-time 5 \
-        -H "Accept: application/json" \
-        -H "Content-Type: application/json" \
-        -H "Authorization: Bearer $TOKEN" \
-        -H "anthropic-beta: oauth-2025-04-20" \
-        "https://api.anthropic.com/api/oauth/usage" 2>/dev/null)
-      if [ -n "$RESP" ] && echo "$RESP" | jq . > /dev/null 2>&1; then
-        echo "$RESP" > "$CACHE_FILE.tmp" && mv "$CACHE_FILE.tmp" "$CACHE_FILE"
-      fi
+  TOKEN=$(read_oauth_token)
+  if [ -n "$TOKEN" ]; then
+    RESP=$(curl -s --max-time 5 \
+      -H "Accept: application/json" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $TOKEN" \
+      -H "anthropic-beta: oauth-2025-04-20" \
+      "https://api.anthropic.com/api/oauth/usage" 2>/dev/null)
+    if [ -n "$RESP" ] && echo "$RESP" | jq . > /dev/null 2>&1; then
+      echo "$RESP" > "$CACHE_FILE.tmp" && mv "$CACHE_FILE.tmp" "$CACHE_FILE"
     fi
   fi
 fi
@@ -90,11 +150,10 @@ if [ -f "$CACHE_FILE" ]; then
 
     RESET_INFO=""
     if [ -n "$FIVE_RESET" ]; then
-      CLEAN_DATE=$(echo "$FIVE_RESET" | sed 's/\.[0-9]*//; s/[+-][0-9:]*$//; s/Z$//')
-      RESET_EPOCH=$(TZ=UTC date -jf "%Y-%m-%dT%H:%M:%S" "$CLEAN_DATE" +%s 2>/dev/null || echo "")
+      RESET_EPOCH=$(iso_to_epoch "$FIVE_RESET")
       if [ -n "$RESET_EPOCH" ]; then
         DIFF=$((RESET_EPOCH - $(date +%s)))
-        RESET_TIME=$(date -r "$RESET_EPOCH" +%H:%M 2>/dev/null)
+        RESET_TIME=$(epoch_to_hm "$RESET_EPOCH")
         if [ "$DIFF" -gt 0 ]; then
           RESET_INFO=" $((DIFF / 3600))h$(((DIFF % 3600) / 60))m→${RESET_TIME}"
         fi
