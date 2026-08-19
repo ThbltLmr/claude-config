@@ -1,7 +1,8 @@
 ---
 name: pr-walkthrough
-description: Build a visual walkthrough artifact of a pull request, showing where each new component lands on screen and how data reaches it. Use when asked to walk through, explain, or document a PR, branch, or diff for reviewers or teammates.
+description: Build a visual walkthrough artifact of a pull request, showing where each new component lands on screen and how data reaches it.
 argument-hint: "[PR number | branch | blank for the current branch] [focus: <area>]"
+disable-model-invocation: true
 ---
 
 # PR walkthrough
