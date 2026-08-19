@@ -55,7 +55,7 @@ The **chain** is one unbroken path per new field: column, microservice use case,
 
 ## Step 3 — Draw
 
-Load `artifact-design`, then `artifact-diagramming`. Copy [`page-scaffold.html`](page-scaffold.html) for the tokens, CSS and figure archetypes. That CSS is the verified version, so change colours and content, not structure.
+Load `artifact-design`, then `artifact-diagramming`. Copy [`page-scaffold.html`](page-scaffold.html) for the tokens, CSS and figure archetypes. That CSS is the verified version, so change colours and content, not structure. The frame is the page's only width: text runs to the same edges as the plates and tables, so never cap a paragraph, caption or `.col` at a reading measure.
 
 Sections in this order. Drop any that has nothing to say instead of padding it.
 

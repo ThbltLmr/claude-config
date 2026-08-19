@@ -89,8 +89,10 @@
     gap: 56px;
   }
 
+  /* Prose shares the frame's width, so paragraphs, plates and tables all
+     break on the same left and right edges. Nothing in the page body sets a
+     narrower measure. */
   .col {
-    max-width: 68ch;
     display: flex;
     flex-direction: column;
     gap: 18px;
@@ -132,7 +134,6 @@
     line-height: 1.62;
     color: var(--ink);
     margin: 0;
-    max-width: 62ch;
   }
 
   .meta {
@@ -220,7 +221,6 @@
   figcaption {
     font-size: 0.86rem;
     color: var(--ink-muted);
-    max-width: 76ch;
     line-height: 1.55;
   }
 
@@ -356,6 +356,10 @@
 
   Structure:  .frame > section > .sec-head.col + figure > .plate > svg
   A figure without .plate, or an svg outside .frame, renders full-bleed.
+
+  The frame is the only width. Prose, plates and tables all run to its edges,
+  so never add a max-width to a paragraph, caption or .col — a narrower
+  measure on the text is what makes a page look misaligned against its figures.
 
   Token meanings, so the second walkthrough looks like the first:
     --accent      structural: section rules, callout badges, active states
