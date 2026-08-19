@@ -1,7 +1,7 @@
 ---
 name: pr-walkthrough
 description: Build a visual walkthrough artifact of a pull request, showing where each new component lands on screen and how data reaches it.
-argument-hint: "[PR number | branch | blank for the current branch] [focus: <area>]"
+argument-hint: "[PR number | blank for the current branch]"
 disable-model-invocation: true
 ---
 
@@ -39,7 +39,7 @@ git diff --name-status $BASE_SHA $HEAD_SHA | awk '{print $1}' | sort | uniq -c
 
 `git diff A B` between two pinned shas, never `A..HEAD` or `A...HEAD` against a branch name. The shortstat must equal the `additions`, `deletions` and `changedFiles` that `gh pr view` reported. If it does not, the range is wrong: stop and fix it before reading a single hunk. Two dots against a moved base tip inflates the deletions; three dots against a stale local base replays work that reached the base as a squash commit, because that squash is not an ancestor of the branch, and one earlier slice of a stack can double the whole page's numbers that way.
 
-These counts go in the masthead. They are the cheapest credibility available, and wrong ones are the cheapest way to lose it. Put the two shas in the handover so a reader can rerun the diff.
+These counts go in the masthead. Put the two shas in the handover so a reader can rerun the diff.
 
 **Done when** the shortstat matches `gh pr view` exactly, you can name every layer the PR touches (frontend app, BFF, microservice, shared lib, migration, translations), and you can count the components a user can now see.
 
@@ -55,7 +55,9 @@ The **chain** is one unbroken path per new field: column, microservice use case,
 
 ## Step 3 — Draw
 
-Load `artifact-design`, then `artifact-diagramming`. Copy [`page-scaffold.html`](page-scaffold.html) for the tokens, CSS and figure archetypes. That CSS is the verified version, so change colours and content, not structure. The frame is the page's only width: text runs to the same edges as the plates and tables, so never cap a paragraph, caption or `.col` at a reading measure.
+Load `artifact-design`, then `artifact-diagramming`. Copy [`page-scaffold.html`](page-scaffold.html) and read its header comment: it carries the tokens, the verified CSS and the figure archetypes, with the rule for each.
+
+Write the page to your scratchpad directory; call that absolute path `$PAGE` for the rest of this skill.
 
 Sections in this order. Drop any that has nothing to say instead of padding it.
 
@@ -77,7 +79,7 @@ Hand-author every SVG and take its colours from the page tokens so both themes w
 You cannot see the page from a terminal, and this genre's bugs leave no trace in the source. Open the file and look, every run.
 
 ```bash
-agent-browser open "file://$PWD/<file>.html"
+agent-browser open "file://$PAGE"
 
 # 1. SVG text overlapping other SVG text
 agent-browser eval "const o=[];document.querySelectorAll('svg.dg').forEach((s,i)=>{const t=[...s.querySelectorAll('text')].map(e=>({e,b:e.getBBox()}));for(let a=0;a<t.length;a++)for(let c=a+1;c<t.length;c++){const x=t[a].b,y=t[c].b;if(x.x<y.x+y.width-1&&y.x<x.x+x.width-1&&x.y<y.y+y.height-1&&y.y<x.y+x.height-1)o.push('fig'+(i+1)+': '+t[a].e.textContent+' / '+t[c].e.textContent)}});JSON.stringify(o)"
@@ -109,4 +111,4 @@ Four failures that are invisible in source and obvious on screen:
 
 Run the `unslop` skill over the page, diagram labels included. This genre attracts three tells above the rest: an em dash in most sentences, bold on every proper noun, and abstract nouns standing in for mechanisms (surface, substrate, hot path).
 
-Publish from the scratchpad directory, and republish the same path for revisions so the URL holds. Hand over the URL, the two shas from Step 1, then say plainly what you inferred rather than verified: invented mock data, hops you could not trace, and anything in the diff worth a second look.
+Publish `$PAGE`, and republish that same path for revisions so the URL holds. Hand over the URL, the two shas from Step 1, then say plainly what you inferred rather than verified: invented mock data, hops you could not trace, and anything in the diff worth a second look.
