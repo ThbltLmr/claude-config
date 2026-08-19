@@ -1,6 +1,7 @@
 ---
 name: teach-me
 description: Drive an interactive, Socratic learning session on any topic. Use when the user wants to genuinely understand a concept (not just get an answer) — triggers include "/teach-me", "teach me about X", "I want to understand how X works", "help me build a mental model of X", "walk me through X".
+disable-model-invocation: true
 ---
 
 # Teach Me
