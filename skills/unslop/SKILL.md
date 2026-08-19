@@ -1,6 +1,6 @@
 ---
 name: unslop
-description: Strip AI writing tells and add human voice to long-form prose. Use ONLY when about to write a substantial multi-paragraph or multi-section text output (roughly 300+ words) that the user will read or keep: a summary, report, analysis or review write-up, README or other documentation, design doc or spec, release notes, or the prose body of an artifact or published page. Apply while drafting, before presenting the text. Do NOT use for short conversational replies, code, code comments, commit messages, PR titles, terminal or log output, config files, or any answer under a few paragraphs.
+description: Strip AI writing tells from long-form prose: summaries, reports, docs, specs, artifact bodies. Use ONLY for multi-paragraph text the user will keep, not chat replies, code, or commits.
 ---
 
 # Unslop
