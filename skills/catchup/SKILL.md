@@ -1,5 +1,7 @@
 ---
-description: Review all changes since the last merge commit
+name: catchup
+description: Review all changes since the last merge commit. Use when the user asks to catch up on a branch or summarize work since its last merge.
+disable-model-invocation: true
 ---
 
 # Catchup
