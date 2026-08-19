@@ -351,14 +351,18 @@
 </style>
 <!--
   ============================================================================
-  MARKUP SKELETONS
-  ============================================================================
-  Token meanings, so a second walkthrough looks like the first:
-    --accent   structural: section rules, callout badges, active states
-    --signal   "this PR changed it": new nodes, new fields, the one hard rule
+  This file renders as a miniature walkthrough page. Every block below sits in
+  the nesting it needs, so copying a block copies its container too.
+
+  Structure:  .frame > section > .sec-head.col + figure > .plate > svg
+  A figure without .plate, or an svg outside .frame, renders full-bleed.
+
+  Token meanings, so the second walkthrough looks like the first:
+    --accent      structural: section rules, callout badges, active states
+    --signal      "this PR changed it": new nodes, new fields, the one rule
     --ink-muted   labels, captions, everything unemphasised
-    --chip-a/b/c  stand-ins for domain colours (shift codes, statuses, categories)
-  Bold is for numbers and for one claim per figure. Not for every proper noun.
+    --chip-a/b/c  stand-ins for domain colours (codes, statuses, categories)
+  Bold is for numbers and for one claim per figure, not for every proper noun.
 -->
 
 <div class="frame">
@@ -376,7 +380,7 @@
     </div>
   </header>
 
-  <!-- one <section> per part: Screen, Data, Logic (optional), Wire, Footprint -->
+  <!-- ======================= SCREEN ======================= -->
   <section>
     <div class="sec-head col">
       <p class="eyebrow">Screen</p>
@@ -384,141 +388,265 @@
       <p>Two sentences of orientation, then get to the figure.</p>
     </div>
 
+    <!-- ARCHETYPE 1 — context: where the new surface sits in the host page.
+         Draw the host loosely, the new surface sharply. One labelled arrow
+         for the interaction that opens it. -->
     <figure>
       <div class="plate">
-        <!-- SVG goes here. Archetypes below. -->
+        <svg class="dg" viewBox="0 0 960 300" role="img" aria-label="State the figure's claim here too.">
+          <defs>
+            <marker id="c-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <polygon class="arrow-ink" points="0,1 10,5 0,9"></polygon>
+            </marker>
+          </defs>
+          <rect class="box2" x="12" y="30" width="936" height="254" rx="5"></rect>
+          <text class="hd" x="12" y="20">HostPage</text>
+          <line class="rule" x1="12" y1="66" x2="948" y2="66"></line>
+          <line class="rule" x1="168" y1="66" x2="168" y2="284"></line>
+          <text class="xs" x="28" y="53">page chrome, drawn loosely</text>
+          <rect x="180" y="94" width="44" height="18" rx="2" fill="var(--chip-a)"></rect>
+          <rect x="308" y="94" width="44" height="18" rx="2" fill="var(--chip-b)"></rect>
+          <rect x="180" y="142" width="44" height="18" rx="2" fill="var(--chip-c)"></rect>
+          <line class="rule" x1="12" y1="130" x2="560" y2="130"></line>
+          <line class="rule" x1="12" y1="178" x2="560" y2="178"></line>
+          <rect class="soft" x="240" y="86" width="60" height="42" rx="2" stroke-width="1.5"></rect>
+          <path class="edge" d="M302 122 H 466" marker-end="url(#c-ink)"></path>
+          <text class="xs" x="332" y="116">the interaction</text>
+          <rect class="box" x="470" y="30" width="478" height="254" rx="5" stroke-width="1.5"></rect>
+          <text class="hd" x="470" y="20">NewSurface</text>
+          <line class="rule" x1="470" y1="66" x2="948" y2="66"></line>
+          <text class="lab" x="488" y="54">real header text</text>
+          <text class="sm" x="488" y="102">existing section</text>
+          <rect class="box2" x="488" y="110" width="442" height="44" rx="3"></rect>
+          <text class="sm" x="488" y="182">new section</text>
+          <rect class="new" x="488" y="190" width="442" height="76" rx="3"></rect>
+          <text class="xs sig" x="709" y="232" text-anchor="middle">what this PR adds</text>
+        </svg>
       </div>
       <figcaption>One claim about what the figure shows. <b>Bold the claim</b>,
         not the nouns.</figcaption>
     </figure>
 
-    <!-- numbered legend for the anatomy figure; badge numbers match the SVG -->
+    <!-- ARCHETYPE 2 — anatomy: the surface at ~1:1 with numbered callouts.
+         The most valuable figure on the page. Transcribe real JSX order and
+         real labels. Badges sit in a column clear of the panel, leaders run
+         straight and never cross content, badge y values stay >= 22 apart.
+         The numbered legend is the ol.callouts below, not SVG text. -->
+    <figure>
+      <div class="plate">
+        <svg class="dg" viewBox="0 0 668 372" role="img" aria-label="State the figure's claim here too.">
+          <rect class="box" x="40" y="30" width="560" height="320" rx="6"></rect>
+          <text class="lab" x="60" y="60">real header text</text>
+          <line class="rule" x1="40" y1="78" x2="600" y2="78"></line>
+          <text class="hd" x="60" y="110">Section heading, as rendered</text>
+          <rect class="box2" x="60" y="122" width="520" height="78" rx="4"></rect>
+          <line class="rule" x1="320" y1="122" x2="320" y2="200"></line>
+          <text class="lab" x="76" y="146">left cell</text>
+          <text class="lab" x="336" y="146">right cell</text>
+          <text class="hd" x="60" y="234">New section heading</text>
+          <rect class="new" x="60" y="246" width="520" height="88" rx="4"></rect>
+          <rect x="76" y="258" width="70" height="20" rx="10" fill="none" stroke="var(--rule)"></rect>
+          <text class="xs" x="88" y="272">a pill</text>
+          <rect x="76" y="290" width="80" height="28" rx="3" fill="var(--chip-b)" stroke="var(--rule)"></rect>
+          <path class="lead" d="M600 52 H 604"></path>
+          <circle class="badge" cx="618" cy="52" r="9"></circle>
+          <text class="badge-t" x="618" y="56" text-anchor="middle">1</text>
+          <path class="lead" d="M600 108 H 604"></path>
+          <circle class="badge" cx="618" cy="108" r="9"></circle>
+          <text class="badge-t" x="618" y="112" text-anchor="middle">2</text>
+          <path class="lead" d="M156 304 H 604"></path>
+          <circle class="badge" cx="618" cy="304" r="9"></circle>
+          <text class="badge-t" x="618" y="308" text-anchor="middle">3</text>
+        </svg>
+      </div>
+      <figcaption>Say which colour marks new code, and disclose invented
+        content here.</figcaption>
+    </figure>
+
+    <!-- badge numbers match the SVG; one entry per component, naming its file -->
     <ol class="callouts">
       <li><code>ComponentName</code>. What it is, and what changed about it.</li>
-      <li><code>OtherComponent</code>, disabled. One clause on why.</li>
+      <li><code>OtherComponent</code>. What it renders, and the props it takes.</li>
+      <li><code>ThirdComponent</code>, disabled. One clause on why, and what owns it later.</li>
     </ol>
   </section>
 
-  <div class="tbl-wrap">
-    <table>
-      <thead><tr><th>Endpoint / model</th><th>Change</th><th></th></tr></thead>
-      <tbody>
-        <tr>
-          <td class="mono">GET …/route</td>
-          <td>What the response or query gained, in one sentence.</td>
-          <td><span class="tag new">fields</span></td>
-        </tr>
-        <tr>
-          <td class="mono">table_name</td>
-          <td>Columns added, and what the migration does or refuses to backfill.</td>
-          <td><span class="tag mod">migration</span></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <!-- ======================= DATA ======================= -->
+  <section>
+    <div class="sec-head col">
+      <p class="eyebrow">Data</p>
+      <h2>How it reaches the browser</h2>
+      <p>One or two sentences. What has to be in the browser at once, and why.</p>
+    </div>
 
-  <ul class="plain">
-    <li>Cost/benefit bullets. One fact each. No hedging.</li>
-  </ul>
+    <!-- ARCHETYPE 3 — lane flow: storage at top, components at bottom.
+         One lane per service, named on the left. Every arrow carries its call
+         or transform. Only PR-touched nodes get .new / .newfill and .sig. -->
+    <figure>
+      <div class="plate">
+        <svg class="dg" viewBox="0 0 1000 306" role="img" aria-label="State the figure's claim here too.">
+          <defs>
+            <marker id="l-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <polygon class="arrow-ink" points="0,1 10,5 0,9"></polygon>
+            </marker>
+            <marker id="l-sig" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <polygon class="arrow-sig" points="0,1 10,5 0,9"></polygon>
+            </marker>
+          </defs>
+          <line class="rule" x1="16" y1="98" x2="984" y2="98"></line>
+          <line class="rule" x1="16" y1="218" x2="984" y2="218"></line>
+          <text class="xs" x="16" y="44">datastore</text>
+          <text class="xs" x="16" y="118">service</text>
+          <text class="xs" x="16" y="238">client</text>
+          <rect class="newfill" x="150" y="22" width="404" height="56" rx="4"></rect>
+          <text class="lab" x="166" y="44">table_name</text>
+          <text class="xs sig" x="166" y="62">+ new_column</text>
+          <rect class="box2" x="600" y="22" width="348" height="56" rx="4"></rect>
+          <text class="lab" x="616" y="44">other_table</text>
+          <text class="xs" x="616" y="62">unchanged</text>
+          <rect class="box" x="150" y="112" width="290" height="56" rx="4"></rect>
+          <text class="lab" x="164" y="146">ReadUseCase</text>
+          <rect class="new" x="470" y="112" width="230" height="56" rx="4"></rect>
+          <text class="lab" x="484" y="138">joinHelper</text>
+          <text class="xs sig" x="484" y="156">the new hop</text>
+          <rect class="box2" x="730" y="112" width="218" height="56" rx="4"></rect>
+          <text class="lab" x="744" y="146">SiblingRoute</text>
+          <path class="edge-new" d="M300 78 V 112" marker-end="url(#l-sig)"></path>
+          <text class="xs sig" x="308" y="98">readMethod(args)</text>
+          <path class="edge" d="M440 140 H 470" marker-end="url(#l-ink)"></path>
+          <path class="edge" d="M840 78 V 112" marker-end="url(#l-ink)"></path>
+          <rect class="new" x="150" y="232" width="330" height="56" rx="4"></rect>
+          <text class="lab" x="164" y="256">useSelector</text>
+          <text class="xs sig" x="164" y="274">Map&lt;key&gt;</text>
+          <rect class="box" x="560" y="232" width="388" height="56" rx="4"></rect>
+          <text class="lab" x="574" y="264">existing selectors</text>
+          <path class="edge-new" d="M300 168 V 232" marker-end="url(#l-sig)"></path>
+          <text class="xs sig" x="308" y="204">GET …/route?flag=true</text>
+          <path class="edge" d="M754 168 V 232" marker-end="url(#l-ink)"></path>
+        </svg>
+      </div>
+      <figcaption><b>The one claim the flow makes.</b> Then the supporting
+        detail.</figcaption>
+    </figure>
+
+    <ul class="plain">
+      <li>Cost and benefit bullets. One fact each, no hedging.</li>
+      <li>What the change adds, and what it removes. Name the number when there is one.</li>
+    </ul>
+  </section>
+
+  <!-- ======================= LOGIC (optional) ======================= -->
+  <section>
+    <div class="sec-head col">
+      <p class="eyebrow">Logic</p>
+      <h2>The rule this encodes</h2>
+      <p>Only include this section when the PR encodes a rule that is not
+        obvious. Otherwise delete it.</p>
+    </div>
+
+    <!-- ARCHETYPE 4 — comparison: two records, the axes compared, one struck
+         out. The strike is the point: it shows what was left out on purpose. -->
+    <figure>
+      <div class="plate">
+        <svg class="dg" viewBox="0 0 960 212" role="img" aria-label="State the figure's claim here too.">
+          <defs>
+            <marker id="p-sig" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <polygon class="arrow-sig" points="0,1 10,5 0,9"></polygon>
+            </marker>
+          </defs>
+          <rect class="box2" x="30" y="46" width="360" height="150" rx="4"></rect>
+          <text class="hd" x="46" y="34">expected RecordType</text>
+          <text class="lab" x="46" y="78">fieldCompared</text>
+          <text class="lab" x="46" y="116">otherFieldCompared</text>
+          <text class="xs sig" x="46" y="170">fieldNotRecorded</text>
+          <rect class="box2" x="570" y="46" width="360" height="150" rx="4"></rect>
+          <text class="hd" x="586" y="34">actual RecordType</text>
+          <text class="lab" x="586" y="78">fieldCompared</text>
+          <text class="lab" x="586" y="116">otherFieldCompared</text>
+          <text class="lab" x="586" y="164">fieldNotRecorded</text>
+          <path class="edge-new" d="M392 74 H 566" marker-end="url(#p-sig)" marker-start="url(#p-sig)"></path>
+          <text class="xs sig" x="479" y="66" text-anchor="middle">≠ → flagged</text>
+          <path class="edge-new" d="M392 112 H 566" marker-end="url(#p-sig)" marker-start="url(#p-sig)"></path>
+          <text class="xs sig" x="479" y="104" text-anchor="middle">≠ → flagged</text>
+          <path class="ghost" d="M392 164 H 566"></path>
+          <line class="strike" x1="452" y1="152" x2="506" y2="176"></line>
+          <text class="xs" x="479" y="192" text-anchor="middle">axis dropped, and why</text>
+        </svg>
+      </div>
+      <figcaption>Why the dropped axis had to go. One sentence.</figcaption>
+    </figure>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Situation</th><th>Verdict</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="mono">the input shape</td>
+            <td><span class="tag">no flag</span></td>
+            <td>The reason, in one sentence.</td>
+          </tr>
+          <tr>
+            <td class="mono">another input shape</td>
+            <td><span class="tag mod">flagged</span></td>
+            <td>Include the cases that return nothing, not only the ones that fire.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ======================= WIRE ======================= -->
+  <section>
+    <div class="sec-head col">
+      <p class="eyebrow">Wire</p>
+      <h2>What changed on the API</h2>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Endpoint / model</th><th>Change</th><th></th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="mono">GET …/route</td>
+            <td>What the response or query gained, in one sentence.</td>
+            <td><span class="tag new">fields</span></td>
+          </tr>
+          <tr>
+            <td class="mono">table_name</td>
+            <td>Columns added, and what the migration does or refuses to backfill.</td>
+            <td><span class="tag mod">migration</span></td>
+          </tr>
+          <tr>
+            <td class="mono">SharedComponent</td>
+            <td>What a shared prop or export gained, and who needed it.</td>
+            <td><span class="tag gone">removed</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ======================= FOOTPRINT ======================= -->
+  <section>
+    <div class="sec-head col">
+      <p class="eyebrow">Footprint</p>
+      <h2>What to read, in what order</h2>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Start here</th><th>Path</th></tr></thead>
+        <tbody>
+          <tr><td>The thing the PR is about</td><td class="mono">path/to/file.tsx</td></tr>
+          <tr><td>The rule, if there is one</td><td class="mono">path/to/rule.ts</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col">
+      <p>Coverage in one paragraph. New test files, reworked suites, and what
+        is deleted.</p>
+    </div>
+  </section>
 
 </div>
-
-<!--
-  ============================================================================
-  SVG ARCHETYPE 1 — context: where the new surface sits in the page
-  ----------------------------------------------------------------------------
-  Draw the host page loosely, the new surface sharply. One labelled arrow for
-  the interaction that opens it.
--->
-<svg class="dg" viewBox="0 0 960 372" role="img" aria-label="State the claim here too.">
-  <defs>
-    <marker id="c-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <polygon class="arrow-ink" points="0,1 10,5 0,9"></polygon>
-    </marker>
-  </defs>
-  <rect class="box2" x="12" y="30" width="936" height="326" rx="5"></rect>
-  <text class="hd" x="12" y="20">HostPage</text>
-  <line class="rule" x1="12" y1="66" x2="948" y2="66"></line>
-  <rect class="soft" x="240" y="102" width="60" height="42" rx="2" stroke-width="1.5"></rect>
-  <path class="edge" d="M302 138 H 466" marker-end="url(#c-ink)"></path>
-  <text class="xs" x="332" y="132">the interaction</text>
-  <rect class="box" x="470" y="30" width="478" height="326" rx="5" stroke-width="1.5"></rect>
-  <text class="hd" x="470" y="20">NewSurface</text>
-  <rect class="new" x="488" y="264" width="442" height="78" rx="3"></rect>
-  <text class="xs sig" x="700" y="308" text-anchor="middle">what this PR adds</text>
-</svg>
-
-<!--
-  ============================================================================
-  SVG ARCHETYPE 2 — anatomy: the surface at ~1:1 with numbered callouts
-  ----------------------------------------------------------------------------
-  The most valuable figure on the page. Transcribe real JSX order and real
-  labels. Badges sit in a column clear of the panel; leaders run straight and
-  never cross content. Keep badge y values >= 22px apart. The numbered legend
-  lives in HTML (ol.callouts), not in the SVG.
--->
-<svg class="dg" viewBox="0 0 668 706" role="img" aria-label="State the claim here too.">
-  <rect class="box" x="40" y="30" width="560" height="650" rx="6"></rect>
-  <text class="lab" x="60" y="60">real header text</text>
-  <line class="rule" x1="40" y1="78" x2="600" y2="78"></line>
-  <text class="hd" x="60" y="194">Section heading, as rendered</text>
-  <rect class="box2" x="60" y="204" width="520" height="112" rx="4"></rect>
-  <rect class="new" x="60" y="390" width="520" height="120" rx="4"></rect>
-  <path class="lead" d="M600 52 H 604"></path>
-  <circle class="badge" cx="618" cy="52" r="9"></circle>
-  <text class="badge-t" x="618" y="56" text-anchor="middle">1</text>
-</svg>
-
-<!--
-  ============================================================================
-  SVG ARCHETYPE 3 — lane flow: storage at top, components at bottom
-  ----------------------------------------------------------------------------
-  One lane per service, named on the left. Every arrow carries its call or
-  transform. Only PR-touched nodes get .new / .newfill and .sig labels.
--->
-<svg class="dg" viewBox="0 0 1000 660" role="img" aria-label="State the claim here too.">
-  <defs>
-    <marker id="l-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <polygon class="arrow-ink" points="0,1 10,5 0,9"></polygon>
-    </marker>
-    <marker id="l-sig" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <polygon class="arrow-sig" points="0,1 10,5 0,9"></polygon>
-    </marker>
-  </defs>
-  <line class="rule" x1="16" y1="98" x2="984" y2="98"></line>
-  <text class="xs" x="16" y="44">datastore</text>
-  <text class="xs" x="16" y="118">service</text>
-  <rect class="newfill" x="150" y="22" width="404" height="56" rx="4"></rect>
-  <text class="lab" x="166" y="44">table_name</text>
-  <text class="xs sig" x="166" y="62">+ new_column</text>
-  <rect class="box" x="150" y="112" width="290" height="60" rx="4"></rect>
-  <path class="edge-new" d="M300 78 V 112" marker-end="url(#l-sig)"></path>
-  <text class="xs sig" x="308" y="98">readMethod(args)</text>
-  <path class="edge" d="M840 78 V 112" marker-end="url(#l-ink)"></path>
-</svg>
-
-<!--
-  ============================================================================
-  SVG ARCHETYPE 4 — comparison: two records, the axes compared, one struck out
-  ----------------------------------------------------------------------------
-  Use when the PR encodes a rule. The struck-through connector is the point:
-  it shows what was deliberately left out.
--->
-<svg class="dg" viewBox="0 0 960 268" role="img" aria-label="State the claim here too.">
-  <defs>
-    <marker id="p-sig" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <polygon class="arrow-sig" points="0,1 10,5 0,9"></polygon>
-    </marker>
-  </defs>
-  <rect class="box2" x="30" y="46" width="360" height="208" rx="4"></rect>
-  <text class="hd" x="46" y="34">expected RecordType</text>
-  <text class="lab" x="46" y="76">fieldCompared</text>
-  <rect class="box2" x="570" y="46" width="360" height="208" rx="4"></rect>
-  <text class="hd" x="586" y="34">actual RecordType</text>
-  <text class="lab" x="586" y="76">fieldCompared</text>
-  <path class="edge-new" d="M392 72 H 566" marker-end="url(#p-sig)" marker-start="url(#p-sig)"></path>
-  <text class="xs sig" x="479" y="64" text-anchor="middle">≠ → flagged</text>
-  <path class="ghost" d="M392 200 H 566"></path>
-  <line class="strike" x1="452" y1="188" x2="506" y2="212"></line>
-  <text class="xs" x="479" y="228" text-anchor="middle">axis dropped, and why</text>
-</svg>

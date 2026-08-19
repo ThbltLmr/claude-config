@@ -94,6 +94,4 @@ Four failures that are invisible in source and obvious on screen:
 
 Run the `unslop` skill over the page, diagram labels included. This genre attracts three tells above the rest: an em dash in most sentences, bold on every proper noun, and abstract nouns standing in for mechanisms (surface, substrate, hot path).
 
-In Hublo repos, French belongs only in strings the UI actually renders. Quote those, and write everything else in English.
-
 Publish from the scratchpad directory, and republish the same path for revisions so the URL holds. Hand over the URL, then say plainly what you inferred rather than verified: invented mock data, hops you could not trace, and anything in the diff worth a second look.
