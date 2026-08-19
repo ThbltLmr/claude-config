@@ -13,25 +13,39 @@ It states what the PR does. It is not a review, and it carries **no decisions or
 
 Prose that describes a sequence of components or hops is a diagram you have not drawn yet.
 
-## Step 1 — Measure
+## Step 1 — Pin the range
 
-The base is the repo's default branch unless the user names another.
+Never measure the local branch. Measure the commits the PR contains, which is not the same thing: a rebase or a force-push moves the PR head away from the checked-out tip, and a stale local base branch moves the other end. Fetch, resolve both ends to a sha, and reuse those two shas for every command in this skill.
+
+When the user names a PR, or the current branch has one:
 
 ```bash
-git log --oneline <base>..HEAD | cat
-git diff --stat <base>...HEAD | tail -40
-git diff --name-status <base>...HEAD | awk '{print $1}' | sort | uniq -c
+gh pr view <n> --json headRefOid,baseRefName,additions,deletions,changedFiles
+git fetch origin "+refs/heads/<baseRefName>:refs/remotes/origin/<baseRefName>" "+refs/pull/<n>/head:refs/pr/<n>"
+HEAD_SHA=$(git rev-parse refs/pr/<n>)
+BASE_SHA=$(git merge-base origin/<baseRefName> $HEAD_SHA)
 ```
 
-Three dots, not two. Two dots diff against the tip of a base branch that has moved, which inflates every number on the page.
+With no PR, fetch the base branch and use `HEAD_SHA=$(git rev-parse HEAD)` with the same merge-base line. Say in the handover that the page describes an unpushed branch.
 
-These counts go in the masthead. They are the cheapest credibility available, and wrong ones are the cheapest way to lose it.
+Then measure, and check the measurement:
 
-**Done when** you can name every layer the PR touches (frontend app, BFF, microservice, shared lib, migration, translations) and count the components a user can now see.
+```bash
+git log --oneline $BASE_SHA..$HEAD_SHA | cat
+git diff --shortstat $BASE_SHA $HEAD_SHA
+git diff --stat=200 $BASE_SHA $HEAD_SHA | cat
+git diff --name-status $BASE_SHA $HEAD_SHA | awk '{print $1}' | sort | uniq -c
+```
+
+`git diff A B` between two pinned shas, never `A..HEAD` or `A...HEAD` against a branch name. The shortstat must equal the `additions`, `deletions` and `changedFiles` that `gh pr view` reported. If it does not, the range is wrong: stop and fix it before reading a single hunk. Two dots against a moved base tip inflates the deletions; three dots against a stale local base replays work that reached the base as a squash commit, because that squash is not an ancestor of the branch, and one earlier slice of a stack can double the whole page's numbers that way.
+
+These counts go in the masthead. They are the cheapest credibility available, and wrong ones are the cheapest way to lose it. Put the two shas in the handover so a reader can rerun the diff.
+
+**Done when** the shortstat matches `gh pr view` exactly, you can name every layer the PR touches (frontend app, BFF, microservice, shared lib, migration, translations), and you can count the components a user can now see.
 
 ## Step 2 — Read for the anatomy and the chain
 
-Two passes over the diff, each ending in a list rather than prose.
+Two passes over the diff, each ending in a list rather than prose. Every command reads `$BASE_SHA $HEAD_SHA`, the range Step 1 pinned. Reading a wider range is how a walkthrough ends up describing a neighbouring PR's feature as if it shipped in this one.
 
 The **anatomy** is the new surface in render order. Read the JSX from the top container down, and for each component record what it renders, the props it takes, what is disabled, and what will own it later. A commit message will never tell you that a card sits above a table. Only the JSX will.
 
@@ -95,4 +109,4 @@ Four failures that are invisible in source and obvious on screen:
 
 Run the `unslop` skill over the page, diagram labels included. This genre attracts three tells above the rest: an em dash in most sentences, bold on every proper noun, and abstract nouns standing in for mechanisms (surface, substrate, hot path).
 
-Publish from the scratchpad directory, and republish the same path for revisions so the URL holds. Hand over the URL, then say plainly what you inferred rather than verified: invented mock data, hops you could not trace, and anything in the diff worth a second look.
+Publish from the scratchpad directory, and republish the same path for revisions so the URL holds. Hand over the URL, the two shas from Step 1, then say plainly what you inferred rather than verified: invented mock data, hops you could not trace, and anything in the diff worth a second look.
