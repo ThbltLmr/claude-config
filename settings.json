@@ -18,7 +18,7 @@
       "Bash(npm run lint)"
     ]
   },
-  "model": "opus",
+  "model": "opus[1m]",
   "hooks": {
     "SessionStart": [
       {
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash '/Users/thibaultlemery/.claude/hooks/herdr-agent-state.sh' session",
+            "command": "bash ~/.claude/hooks/herdr-agent-state.sh session",
             "timeout": 10
           }
         ]
@@ -51,6 +51,5 @@
   "autoMemoryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",
-  "editorMode": "vim",
-  "cleanupPeriodDays": 365
+  "editorMode": "vim"
 }
