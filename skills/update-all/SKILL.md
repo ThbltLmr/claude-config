@@ -14,7 +14,7 @@ The prime directive: **fast-forward only**. No `reset --hard`, no force push, no
 
 **Config repos only.** Two passes, in order:
 
-1. **Config repos** — `~/.claude`, `~/.codex`, `~/.pi/agent`, `~/.oh-my-zsh`, and the git repos directly under `~/.config/` and `~/.scripts/`.
+1. **Config repos** — `~/.claude`, `~/.codex`, `~/.pi` (the repo may be rooted at `~/.pi` or at `~/.pi/agent`), `~/.oh-my-zsh`, and the git repos directly under `~/.config/` and `~/.scripts/`.
 2. **Tool check** — config repos whose tool isn't installed here, and installed tools whose local config isn't linked to its repo.
 
 **Out of scope: project and work repos.** `~/Work`, `~/PersProjects`, `~/OssProjects`, `~/Keikos`, the working directory — leave them alone entirely. Do not survey them, do not fetch them, do not mention them in the report. Updating a work repo is a decision about a task in flight; this skill is for the machine's configuration. If the user wants a project repo updated, they will say so, and that is a different job.
@@ -23,12 +23,16 @@ The prime directive: **fast-forward only**. No `reset --hard`, no force push, no
 
 ```bash
 {
-  ls -d ~/.config/*/ ~/.scripts/*/ 2>/dev/null
-  echo ~/.claude; echo ~/.codex; echo ~/.pi/agent; echo ~/.oh-my-zsh
+  for base in ~/.config ~/.scripts; do
+    [ -d "$base" ] && find "$base" -maxdepth 1 -mindepth 1 -type d
+  done
+  echo ~/.claude; echo ~/.codex; echo ~/.pi; echo ~/.pi/agent; echo ~/.oh-my-zsh
 } | sed 's|/$||' | while read -r d; do
   [ -e "$d/.git" ] && echo "$d"
 done | sort -u
 ```
+
+Enumerate with `find`, not a glob. Under zsh a pattern that matches nothing — `~/.scripts/*/` on a machine with no `~/.scripts` — is a fatal `no matches found` that kills the whole command and takes the `~/.config` results with it, so the run silently surveys a handful of repos instead of all of them. `2>/dev/null` does not save you: the failure happens during expansion, before any redirection applies.
 
 Nested clones **inside** a config repo belong to the tool, not the user: tmux plugin-manager clones, `~/.oh-my-zsh/custom/plugins/*`, `.tmp/` trees, vendored imports. The top-level enumeration above already skips them — keep it that way.
 
@@ -61,6 +65,8 @@ Decide per repo from the survey:
 - **Ahead of upstream** → leave it alone. Report the unpushed commits; never push on the user's behalf unless asked.
 - **Dirty** → still safe to try: `--ff-only` aborts rather than clobbering local edits. If it aborts, report it.
 - **No upstream, unborn branch, or empty remote** → report it, don't guess a remote branch to track.
+
+When `pull.rebase` or an autostash is configured, `git pull --ff-only` can refuse on a dirty worktree even though the fast-forward itself is safe — and the autostash refuses outright if a tracked directory has been replaced locally by a symlink. `git merge --ff-only @{upstream}` does the same fast-forward without the rebase and stash machinery, and still aborts rather than clobbering a colliding path. Reach for it when the pull balks for a reason unrelated to the incoming commits.
 
 ## 5. Conflicts are the user's call
 
