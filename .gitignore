@@ -10,5 +10,9 @@
 !agents/**
 !skills/
 !skills/**
+
+# Omarchy-provided skills, symlinked from /usr/share/omarchy on this machine only.
+skills/diagnose-crash
+skills/omarchy
 !statusline-command.sh
 !README.md
