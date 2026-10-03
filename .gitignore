@@ -14,5 +14,8 @@
 # Omarchy-provided skills, symlinked from /usr/share/omarchy on this machine only.
 skills/diagnose-crash
 skills/omarchy
+
+# Skills synced in by Claude Code itself (managed state, not user-authored).
+skills/synced/
 !statusline-command.sh
 !README.md
